@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untuk Kamu 🤍</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     KONSEP: "Buku Kenangan" — album/jurnal digital yang halamannya
+     bisa dibuka satu-satu, ditempel foto ala polaroid + washi tape.
+
+     ============================================================
+     CARA PAKAI CEPAT
+     1. Ganti isi array PAGES di bagian <script> paling bawah:
+        - ubah "name", "subtitle", "text" sesuai ceritamu.
+        - ganti path foto (mis. "foto/foto1.jpg") dengan foto asli.
+     2. Taruh foto-foto kamu di folder /foto dengan nama yang sama.
+     3. Kalau foto belum ada, halaman otomatis menampilkan kotak
+        placeholder rapi — jadi aman untuk dicoba dulu.
+     4. Upload semua file ke repo GitHub, aktifkan GitHub Pages
+        (Settings → Pages → Deploy from branch → main → /root).
+     ============================================================ */
+
+  :root{
+    --paper:      #FBF6EF;
+    --paper-edge: #F0E4D6;
+    --blush:      #E7C6C6;
+    --rose-deep:  #B15A73;
+    --sage:       #90A17E;
+    --ink:        #3B2C36;
+    --gold:       #C9A468;
+    --stage-1:    #4A2E3B;
+    --stage-2:    #7C4A5C;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Lora', serif;
+    color:var(--ink);
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      radial-gradient(ellipse at 80% 85%, rgba(255,255,255,0.05), transparent 45%),
+      linear-gradient(160deg, var(--stage-1), var(--stage-2) 70%);
+    overflow:hidden;
+    position:relative;
+    padding:24px;
+  }
+
+  /* ambient floating petals — subtle, few, respects reduced motion */
+  .petal{
+    position:fixed;
+    top:-40px;
+    width:14px; height:14px;
+    background:var(--blush);
+    border-radius:0 60% 0 60%;
+    opacity:0.55;
+    animation:fall linear infinite;
+    pointer-events:none;
+    z-index:0;
+  }
+  @keyframes fall{
+    to{ transform:translateY(110vh) rotate(200deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .petal{ display:none; }
+  }
+
+  /* ---------------- book ---------------- */
+  .book{
+    position:relative;
+    width:100%;
+    max-width:460px;
+    height:min(680px, 88vh);
+    perspective:1800px;
+    z-index:1;
+  }
+
+  .page{
+    position:absolute;
+    inset:0;
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.45),
+      0 2px 0 var(--paper-edge) inset;
+    padding:34px 30px 26px;
+    display:flex;
+    flex-direction:column;
+    transform-origin:left center;
+    backface-visibility:hidden;
+    transition:transform 0.7s cubic-bezier(.65,0,.35,1), opacity 0.4s ease;
+  }
+  /* subtle paper texture via layered gradient */
+  .page::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(59,44,54,0.015) 0 1px, transparent 1px 3px);
+    border-radius:6px;
+    pointer-events:none;
+  }
+
+  .page.current{ transform:rotateY(0deg); opacity:1; z-index:5; }
+  .page.next{ transform:rotateY(-100deg); opacity:0; z-index:1; }
+  .page.prev{ transform:rotateY(100deg); opacity:0; z-index:1; }
+  @media (prefers-reduced-motion: reduce){
+    .page{ transition:opacity 0.3s ease; }
+    .page.next, .page.prev{ transform:none; }
+  }
+
+  .eyebrow{
+    font-family:'Caveat', cursive;
+    font-size:22px;
+    color:var(--rose-deep);
+    letter-spacing:0.02em;
+    margin:0 0 2px;
+  }
+
+  h1, h2{
+    font-family:'Playfair Display', serif;
+    font-weight:600;
+    margin:0 0 10px;
+    line-height:1.15;
+    color:var(--ink);
+  }
+
+  /* ---------------- stitched divider ---------------- */
+  .stitch{
+    border:none;
+    height:1px;
+    margin:14px 0 16px;
+    background:repeating-linear-gradient(90deg, var(--sage) 0 6px, transparent 6px 11px);
+    opacity:0.7;
+  }
+
+  /* ---------------- photo slot / polaroid ---------------- */
+  .photo-slot{
+    position:relative;
+    width:78%;
+    max-width:230px;
+    margin:6px auto 14px;
+    background:#fff;
+    padding:10px 10px 26px;
+    box-shadow:0 10px 24px -8px rgba(0,0,0,0.35);
+    transform:rotate(-2.5deg);
+    border-radius:2px;
+  }
+  .photo-slot:nth-of-type(even){ transform:rotate(2deg); }
+  .photo-slot img{
+    display:block;
+    width:100%;
+    aspect-ratio:4/5;
+    object-fit:cover;
+    background:var(--paper-edge);
+  }
+  .photo-slot .tape{
+    position:absolute;
+    top:-10px; left:50%;
+    width:56px; height:20px;
+    margin-left:-28px;
+    background:rgba(201,164,104,0.55);
+    border:1px solid rgba(201,164,104,0.3);
+    transform:rotate(-4deg);
+  }
+  .ph-fallback{
+    display:none;
+    aspect-ratio:4/5;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    background:
+      repeating-linear-gradient(45deg, var(--paper-edge) 0 10px, #fff 10px 20px);
+    color:var(--rose-deep);
+    font-family:'Lora', serif;
+    font-size:11px;
+    text-align:center;
+    padding:8px;
+  }
+  .photo-slot.empty .ph-fallback{ display:flex; }
+  .photo-slot.empty img{ display:none; }
+
+  /* collage for closing page */
+  .collage{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    margin:6px 0 14px;
+  }
+  .collage .photo-slot{ width:31%; margin:0; padding:6px 6px 16px; }
+
+  .body-text{
+    font-size:15.5px;
+    line-height:1.75;
+    color:var(--ink);
+    margin:0;
+  }
+
+  .signature{
+    margin-top:auto;
+    padding-top:14px;
+    font-family:'Caveat', cursive;
+    font-size:22px;
+    color:var(--rose-deep);
+  }
+
+  /* ---------------- cover page ---------------- */
+  .cover{ align-items:center; justify-content:center; text-align:center; }
+  .cover .heart-seal{
+    width:54px; height:54px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--rose-deep), var(--stage-1));
+    display:flex; align-items:center; justify-content:center;
+    color:var(--paper);
+    font-size:22px;
+    margin-bottom:18px;
+    box-shadow:0 6px 16px -4px rgba(0,0,0,0.4);
+  }
+  .cover h1{ font-size:clamp(26px,7vw,34px); }
+  .cover .cover-name{
+    font-family:'Caveat', cursive;
+    color:var(--rose-deep);
+    font-size:clamp(30px,8vw,40px);
+    margin:2px 0 14px;
+  }
+  .cover p{ color:var(--ink); opacity:0.75; font-size:14.5px; max-width:280px; }
+
+  .btn{
+    margin-top:22px;
+    border:1px solid var(--rose-deep);
+    background:transparent;
+    color:var(--rose-deep);
+    font-family:'Lora', serif;
+    font-size:14px;
+    letter-spacing:0.03em;
+    padding:11px 26px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background 0.25s ease, color 0.25s ease;
+  }
+  .btn:hover{ background:var(--rose-deep); color:var(--paper); }
+  .btn:focus-visible{ outline:2px solid var(--sage); outline-offset:3px; }
+
+  /* ---------------- nav controls ---------------- */
+  .book-nav{
+    position:absolute;
+    left:0; right:0; bottom:-52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    z-index:6;
+  }
+  .nav-btn{
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.35);
+    background:rgba(255,255,255,0.08);
+    color:var(--paper);
+    font-size:16px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.2s ease, opacity 0.2s ease;
+  }
+  .nav-btn:hover{ background:rgba(255,255,255,0.18); }
+  .nav-btn:disabled{ opacity:0.25; cursor:default; }
+  .nav-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .dots{ display:flex; gap:6px; }
+  .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,0.35);
+    transition:background 0.2s ease, transform 0.2s ease;
+  }
+  .dot.active{ background:var(--gold); transform:scale(1.3); }
+
+  .page-count{
+    position:absolute;
+    bottom:14px; right:26px;
+    font-family:'Caveat', cursive;
+    font-size:16px;
+    color:var(--rose-deep);
+    opacity:0.7;
+  }
+
+  @media (max-width:380px){
+    .page{ padding:26px 20px 20px; }
+  }
+
+  /* ---------------- music toggle ---------------- */
+  .music-btn{
+    position:fixed;
+    top:18px; right:18px;
+    width:42px; height:42px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.35);
+    background:rgba(255,255,255,0.08);
+    color:var(--paper);
+    font-size:16px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    z-index:20;
+    transition:background 0.2s ease, transform 0.2s ease;
+  }
+  .music-btn:hover{ background:rgba(255,255,255,0.18); }
+  .music-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .music-btn .bar{
+    display:inline-flex;
+    gap:2px;
+    align-items:flex-end;
+    height:14px;
+  }
+  .music-btn .bar span{
+    width:2.5px;
+    background:var(--gold);
+    border-radius:2px;
+    animation:eq 0.9s ease-in-out infinite;
+  }
+  .music-btn.playing .bar span:nth-child(1){ animation-delay:0s; }
+  .music-btn.playing .bar span:nth-child(2){ animation-delay:0.15s; }
+  .music-btn.playing .bar span:nth-child(3){ animation-delay:0.3s; }
+  .music-btn:not(.playing) .bar span{ animation-play-state:paused; height:4px !important; }
+  @keyframes eq{
+    0%, 100%{ height:4px; }
+    50%{ height:14px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="music-btn" id="musicBtn" aria-label="Putar musik" aria-pressed="false">
+  <span class="bar"><span style="height:8px"></span><span style="height:14px"></span><span style="height:6px"></span></span>
+</button>
+
+<!-- Ganti src di bawah dengan lagu milikmu sendiri, taruh filenya di folder audio/ -->
+<audio id="bgAudio" src="audio/lagu.mp3" loop preload="none"></audio>
+
+<div class="book" id="book"></div>
+<div class="book-nav">
+  <button class="nav-btn" id="prevBtn" aria-label="Halaman sebelumnya">←</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav-btn" id="nextBtn" aria-label="Halaman berikutnya">→</button>
+</div>
+
+<script>
+/* ============================================================
+   1) EDIT SEMUA TEKS & FOTO DI SINI SAJA
+   ============================================================ */
+const PAGES = [
+  {
+    type: "cover",
+    seal: "🤍",
+    title: "Untuk Kamu",
+    name: "Nama Sayang",
+    subtitle: "sebuah kado kecil, dari aku untukmu. yuk dibuka pelan-pelan.",
+    cta: "Buka Halaman →"
+  },
+  {
+    type: "content",
+    eyebrow: "Halaman 1 · Awal Cerita",
+    title: "Yang Aku Ingat Pertama",
+    photo: "foto/foto1.jpg",
+    text: "Dari semua hal baik yang pernah terjadi tahun ini, mengenalmu ada di urutan paling atas. Rasanya kayak nemu bab favorit tanpa sengaja."
+  },
+  {
+    type: "content",
+    eyebrow: "Halaman 2 · Yang Aku Suka",
+    title: "Tentang Kamu",
+    photo: "foto/foto2.jpg",
+    text: "Aku suka caramu tertawa lepas, caramu peduli tanpa diminta, dan caramu selalu bikin hari yang biasa aja jadi terasa spesial."
+  },
+  {
+    type: "content",
+    eyebrow: "Halaman 3 · Momen Favorit",
+    title: "Kalau Boleh Diputar Ulang",
+    photo: "foto/foto3.jpg",
+    text: "Aku bakal pilih hari itu — waktu kita cuma duduk berdua, ngobrol random, dan nggak sadar udah lupa waktu."
+  },
+  {
+    type: "content",
+    eyebrow: "Halaman 4 · Doa untukmu",
+    title: "Di Hari Spesialmu",
+    photo: "foto/foto4.jpg",
+    text: "Aku doain kamu selalu sehat, selalu dikelilingi orang-orang yang sayang, dan semua rencana baikmu dimudahkan jalannya. Makasih udah jadi kamu yang sekarang."
+  },
+  {
+    type: "closing",
+    eyebrow: "Halaman Terakhir (untuk sekarang)",
+    title: "Selamat Ulang Tahun",
+    photos: ["foto/foto5.jpg", "foto/foto6.jpg", "foto/foto7.jpg"],
+    text: "Ini baru permulaan. Masih banyak halaman kosong yang nunggu buat kita isi bareng-bareng.",
+    signature: "— selalu, aku 🤍"
+  }
+];
+
+/* ============================================================
+   2) RENDER — tidak perlu diubah kecuali mau ubah struktur
+   ============================================================ */
+const book = document.getElementById('book');
+const dotsWrap = document.getElementById('dots');
+let current = 0;
+
+function photoSlot(src, alt){
+  return `<div class="photo-slot">
+      <span class="tape"></span>
+      <img src="${src}" alt="${alt}" loading="lazy"
+           onerror="this.remove(); this.closest('.photo-slot').classList.add('empty')">
+      <div class="ph-fallback">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>
+        <span>${src}</span>
+      </div>
+    </div>`;
+}
+
+function renderPage(p){
+  if(p.type === "cover"){
+    return `<div class="page cover">
+        <div class="heart-seal">${p.seal || "🤍"}</div>
+        <h1>${p.title}</h1>
+        <div class="cover-name">${p.name}</div>
+        <p>${p.subtitle}</p>
+        <button class="btn" id="openBtn">${p.cta}</button>
+      </div>`;
+  }
+  if(p.type === "closing"){
+    return `<div class="page">
+        <div class="eyebrow">${p.eyebrow}</div>
+        <h2>${p.title}</h2>
+        <hr class="stitch">
+        <div class="collage">
+          ${p.photos.map((src,i)=>photoSlot(src, "Kenangan " + (i+1))).join("")}
+        </div>
+        <p class="body-text">${p.text}</p>
+        <div class="signature">${p.signature}</div>
+      </div>`;
+  }
+  return `<div class="page">
+      <div class="eyebrow">${p.eyebrow}</div>
+      <h2>${p.title}</h2>
+      ${photoSlot(p.photo, p.title)}
+      <hr class="stitch">
+      <p class="body-text">${p.text}</p>
+    </div>`;
+}
+
+PAGES.forEach((p, i)=>{
+  const el = document.createElement('div');
+  el.innerHTML = renderPage(p);
+  const node = el.firstElementChild;
+  node.dataset.index = i;
+  book.appendChild(node);
+
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dotsWrap.appendChild(dot);
+});
+
+const pageEls = [...book.children];
+const dotEls = [...dotsWrap.children];
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+function update(){
+  pageEls.forEach((el, i)=>{
+    el.classList.remove('current','next','prev');
+    if(i === current) el.classList.add('current');
+    else if(i < current) el.classList.add('prev');
+    else el.classList.add('next');
+  });
+  dotEls.forEach((d,i)=> d.classList.toggle('active', i===current));
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === pageEls.length - 1;
+
+  const openBtn = document.getElementById('openBtn');
+  if(openBtn) openBtn.onclick = ()=> go(current+1);
+}
+
+function go(i){
+  if(i < 0 || i >= pageEls.length) return;
+  current = i;
+  update();
+}
+
+prevBtn.addEventListener('click', ()=> go(current-1));
+nextBtn.addEventListener('click', ()=> go(current+1));
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowRight') go(current+1);
+  if(e.key === 'ArrowLeft') go(current-1);
+});
+
+// swipe support
+let touchX = null;
+book.addEventListener('touchstart', e=> touchX = e.touches[0].clientX);
+book.addEventListener('touchend', e=>{
+  if(touchX===null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if(dx > 50) go(current-1);
+  if(dx < -50) go(current+1);
+  touchX = null;
+});
+
+update();
+
+/* ---------------- musik latar ---------------- */
+const bgAudio = document.getElementById('bgAudio');
+const musicBtn = document.getElementById('musicBtn');
+let audioMissing = false;
+
+bgAudio.volume = 0.55;
+bgAudio.addEventListener('error', ()=> audioMissing = true);
+
+function playAudio(){
+  if(audioMissing) return;
+  bgAudio.play().then(()=>{
+    musicBtn.classList.add('playing');
+    musicBtn.setAttribute('aria-pressed', 'true');
+    musicBtn.setAttribute('aria-label', 'Hentikan musik');
+  }).catch(()=>{ /* browser masih menunggu interaksi, tidak apa-apa */ });
+}
+
+function pauseAudio(){
+  bgAudio.pause();
+  musicBtn.classList.remove('playing');
+  musicBtn.setAttribute('aria-pressed', 'false');
+  musicBtn.setAttribute('aria-label', 'Putar musik');
+}
+
+musicBtn.addEventListener('click', ()=>{
+  if(bgAudio.paused) playAudio(); else pauseAudio();
+});
+
+// klik "Buka Halaman" di sampul otomatis menyalakan musik juga
+book.addEventListener('click', (e)=>{
+  if(e.target && e.target.id === 'openBtn' && bgAudio.paused) playAudio();
+});
+
+/* ambient floating petals */
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  for(let i=0;i<10;i++){
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.animationDuration = (14 + Math.random()*10) + 's';
+    p.style.animationDelay = (Math.random()*10) + 's';
+    p.style.opacity = 0.25 + Math.random()*0.4;
+    document.body.appendChild(p);
+  }
+}
+</script>
+</body>
+</html>
