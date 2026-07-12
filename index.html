@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Untuk BB Mon 🤍</title>
+<title>Untuk Kamu 🤍</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -75,14 +75,23 @@
     .petal{ display:none; }
   }
 
+  /* ---------------- stage (bungkus book + nav) ---------------- */
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    width:100%;
+    max-width:460px;
+    z-index:1;
+  }
+
   /* ---------------- book ---------------- */
   .book{
     position:relative;
     width:100%;
-    max-width:460px;
-    height:min(680px, 88vh);
+    height:min(620px, 76vh);
     perspective:1800px;
-    z-index:1;
   }
 
   .page{
@@ -253,13 +262,11 @@
 
   /* ---------------- nav controls ---------------- */
   .book-nav{
-    position:absolute;
-    left:0; right:0; bottom:-52px;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:18px;
-    z-index:6;
+    flex-shrink:0;
   }
   .nav-btn{
     width:38px; height:38px;
@@ -345,11 +352,13 @@
 <!-- Ganti src di bawah dengan lagu milikmu sendiri, taruh filenya di folder audio/ -->
 <audio id="bgAudio" src="audio/lagu.mp3" loop preload="none"></audio>
 
-<div class="book" id="book"></div>
-<div class="book-nav">
-  <button class="nav-btn" id="prevBtn" aria-label="Halaman sebelumnya">←</button>
-  <div class="dots" id="dots"></div>
-  <button class="nav-btn" id="nextBtn" aria-label="Halaman berikutnya">→</button>
+<div class="stage">
+  <div class="book" id="book"></div>
+  <div class="book-nav">
+    <button class="nav-btn" id="prevBtn" aria-label="Halaman sebelumnya">←</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="nextBtn" aria-label="Halaman berikutnya">→</button>
+  </div>
 </div>
 
 <script>
@@ -360,46 +369,46 @@ const PAGES = [
   {
     type: "cover",
     seal: "🤍",
-    title: "Untuk Kamu",
-    name: "Nama Sayang",
-    subtitle: "sebuah kado kecil, dari aku untukmu. yuk dibuka pelan-pelan.",
+    title: "Untuk bb Mon",
+    name: "Sherly Ong",
+    subtitle: "Wa buat 1 web simple untuk bb. <br>Semoga suka ya. <br>yuk dibuka pelan-pelan.",
     cta: "Buka Halaman →"
   },
   {
     type: "content",
     eyebrow: "Halaman 1 · Awal Cerita",
-    title: "Yang Aku Ingat Pertama",
+    title: "Pertama x walang ketemu 11/05/2024",
     photo: "foto/foto1.jpg",
-    text: "Dari semua hal baik yang pernah terjadi tahun ini, mengenalmu ada di urutan paling atas. Rasanya kayak nemu bab favorit tanpa sengaja."
+    text: "Dari awal cuma kenalan biasa, gak nyangka sekarang bb udah jadi semesta buat wa. Happy birthday, BII! Semoga bb makin sukses, bahagia terus, dan selalu dalam lindungan-Nya. Doa wa buat kita berdua gak ribet, semoga kita selalu ho-ho, saling melengkapi, dan dilancarkan rencana kita ke depannya. Makasih bii udah lahir ke dunia dan jadi cerita terbaik di hidup wa."
   },
   {
     type: "content",
-    eyebrow: "Halaman 2 · Yang Aku Suka",
-    title: "Tentang Kamu",
+    eyebrow: "Halaman 2 · Happy Birthday Pertama",
+    title: "HBD pertama bb wlg rayain bareng di umur 20 <br> 11/07/2024",
     photo: "foto/foto2.jpg",
-    text: "Aku suka caramu tertawa lepas, caramu peduli tanpa diminta, dan caramu selalu bikin hari yang biasa aja jadi terasa spesial."
+    text: "Memori 11/07/2024, rayain ultah bb pertama bareng di umur 20. Dari awal kenalan biasa, berubah jadi hari paling berharga.Ingat banget momen di gym itu, bb yang datang naik mobil sendiri karena wa belum kenal ortu bb, dan wa yang bawa kado serta bunga handmade dengan tangan bengkak kena lem, dibantu naik mobil ted karena wa sendiri belum ada mobil. Perjuangan awal itu yang bikin kita makin kuat sampai sekarang."
   },
   {
     type: "content",
-    eyebrow: "Halaman 3 · Momen Favorit",
-    title: "Kalau Boleh Diputar Ulang",
+    eyebrow: "Halaman 3 · Happy Anniversary Pertama",
+    title: "First Anniversary bb, pertama x bawa bb pake mobil sendiri ke tempat mewah <br> 15/02/2026",
     photo: "foto/foto3.jpg",
-    text: "Aku bakal pilih hari itu — waktu kita cuma duduk berdua, ngobrol random, dan nggak sadar udah lupa waktu."
+    text: "Memori 15/02/2026, pertama kali merayakan anniv bareng bb. Rasa bangga luar biasa akhirnya wa bisa bawa lu pergi pakai mobil yang wa beli pakai uang sendiri, meskipun kondisi second hancur. Pulang sampai malam setelah izin baik-baik dengan mami bb. Wa bersyukur bb tetap mau nemenin wa dari proses merintis ini."
   },
   {
     type: "content",
-    eyebrow: "Halaman 4 · Doa untukmu",
-    title: "Di Hari Spesialmu",
-    photo: "foto/foto4.jpg",
-    text: "Aku doain kamu selalu sehat, selalu dikelilingi orang-orang yang sayang, dan semua rencana baikmu dimudahkan jalannya. Makasih udah jadi kamu yang sekarang."
+    eyebrow: "Untuk Hari Ini",
+    title: "Doa Kecil di Hari Spesial bb",
+    photo: "foto/foto3.jpg",
+    text: "Semoga umurmu yang baru ini dipenuhi hal-hal yang bikin kamu tenang, disayang orang-orang baik, dan selalu punya alasan untuk tersenyum. Terima kasih sudah jadi kamu, hari ini dan seterusnya."
   },
   {
     type: "closing",
-    eyebrow: "Halaman Terakhir (untuk sekarang)",
+    eyebrow: "Halaman Terakhir (for now mungkin bs nambah)",
     title: "Selamat Ulang Tahun",
-    photos: ["foto/foto5.jpg", "foto/foto6.jpg", "foto/foto7.jpg"],
-    text: "Ini baru permulaan. Masih banyak halaman kosong yang nunggu buat kita isi bareng-bareng.",
-    signature: "— selalu, aku 🤍"
+    photos: ["foto/foto4.jpg", "foto/foto5.jpg", "foto/foto6.jpg"],
+    text: "Ini baru permulaan. Masih banyak halaman kosong yang nunggu buat walang isi bareng-bareng, satu per satu, pelan-pelan.",
+    signature: "— cca 🤍"
   }
 ];
 
